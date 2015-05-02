@@ -16,6 +16,11 @@ from concurrent.futures._base import (FIRST_COMPLETED,
                                       as_completed)
 from concurrent.futures.thread import ThreadPoolExecutor
 
+try:
+    from concurrent.futures.gevent import GeventPoolExecutor
+except ImportError:
+    pass
+
 # Jython doesn't have multiprocessing
 try:
     from concurrent.futures.process import ProcessPoolExecutor
