@@ -12,10 +12,7 @@ import sys
 
 from concurrent.futures import _base
 
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+from gevent.queue as queue
 
 __author__ = 'Joel Ward (jmward@gmail.com)'
 
