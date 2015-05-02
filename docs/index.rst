@@ -144,6 +144,80 @@ ThreadPoolExecutor Example
             else:
                 print('%r page is %d bytes' % (url, len(future.result())))
 
+GeventPoolExecutor Objects
+--------------------------
+
+The :class:`GeventPoolExecutor` class is an :class:`Executor` subclass that uses
+a pool of Greenlents to execute calls asynchronously.
+
+Deadlock can occur when the callable associated with a :class:`Future` waits on
+the results of another :class:`Future`. For example:
+
+::
+
+    import time
+    def wait_on_b():
+        time.sleep(5)
+        print(b.result())  # b will never complete because it is waiting on a.
+        return 5
+
+    def wait_on_a():
+        time.sleep(5)
+        print(a.result())  # a will never complete because it is waiting on b.
+        return 6
+
+
+    executor = GeventPoolExecutor(max_workers=2)
+    a = executor.submit(wait_on_b)
+    b = executor.submit(wait_on_a)
+
+And:
+
+::
+
+    def wait_on_future():
+        f = executor.submit(pow, 5, 2)
+        # This will never complete because there is only one worker Greenlet and
+        # it is executing this function.
+        print(f.result())
+    
+    executor = GeventPoolExecutor(max_workers=1)
+    executor.submit(wait_on_future)
+
+.. class:: GeventPoolExecutor(max_workers)
+
+   Executes calls asynchronously using at pool of at most *max_workers* Greenlets.
+
+.. _geventpoolexecutor-example:
+
+GeventPoolExecutor Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    from concurrent import futures
+    import urllib.request
+    
+    URLS = ['http://www.foxnews.com/',
+            'http://www.cnn.com/',
+            'http://europe.wsj.com/',
+            'http://www.bbc.co.uk/',
+            'http://some-made-up-domain.com/']
+    
+    def load_url(url, timeout):
+        return urllib.request.urlopen(url, timeout=timeout).read()
+    
+    with futures.GeventPoolExecutor(max_workers=5) as executor:
+        future_to_url = dict((executor.submit(load_url, url, 60), url)
+                             for url in URLS)
+    
+        for future in futures.as_completed(future_to_url):
+            url = future_to_url[future]
+            if future.exception() is not None:
+                print('%r generated an exception: %s' % (url,
+                                                         future.exception()))
+            else:
+                print('%r page is %d bytes' % (url, len(future.result())))
+
 ProcessPoolExecutor Objects
 ---------------------------
 
