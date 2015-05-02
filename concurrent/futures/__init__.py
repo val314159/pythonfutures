@@ -17,7 +17,7 @@ from concurrent.futures._base import (FIRST_COMPLETED,
 from concurrent.futures.thread import ThreadPoolExecutor
 
 try:
-    from concurrent.futures.gevent import GeventPoolExecutor
+    from concurrent.futures.gevents import GeventPoolExecutor
 except ImportError:
     pass
 

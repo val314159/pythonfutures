@@ -4,6 +4,7 @@ import time
 import sys
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import GeventPoolExecutor
 
 PRIMES = [
     112272535095293,
@@ -31,6 +32,10 @@ def with_process_pool_executor():
     with ProcessPoolExecutor(10) as executor:
         return list(executor.map(is_prime, PRIMES))
 
+def with_gevent_pool_executor():
+    with GeventPoolExecutor(10) as executor:
+        return list(executor.map(is_prime, PRIMES))
+
 def with_thread_pool_executor():
     with ThreadPoolExecutor(10) as executor:
         return list(executor.map(is_prime, PRIMES))
@@ -38,6 +43,7 @@ def with_thread_pool_executor():
 def main():
     for name, fn in [('sequential', sequential),
                      ('processes', with_process_pool_executor),
+                     ('gevent', with_gevent_pool_executor),
                      ('threads', with_thread_pool_executor)]:
         sys.stdout.write('%s: ' % name.ljust(12))
         start = time.time()

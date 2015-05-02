@@ -6,13 +6,13 @@
 
 from __future__ import with_statement
 import atexit
-import gevent
+import gevent,gevent.lock
 import weakref
 import sys
 
 from concurrent.futures import _base
 
-from gevent.queue as queue
+import gevent.queue as queue
 
 __author__ = 'Joel Ward (jmward@gmail.com)'
 
@@ -95,7 +95,7 @@ class GeventPoolExecutor(_base.Executor):
         self._work_queue = queue.Queue()
         self._threads = set()
         self._shutdown = False
-        self._shutdown_lock = gevent.Lock()
+        self._shutdown_lock = gevent.lock.RLock()
 
     def submit(self, fn, *args, **kwargs):
         with self._shutdown_lock:
@@ -118,9 +118,8 @@ class GeventPoolExecutor(_base.Executor):
         # TODO(bquinlan): Should avoid creating new threads if there are more
         # idle threads than items in the work queue.
         if len(self._threads) < self._max_workers:
+            gevent.sleep(0) # if this isnt here, it freezes
             t = gevent.spawn(_worker, weakref.ref(self, weakref_cb), self._work_queue)
-            #t.daemon = True
-            #t.start()
             self._threads.add(t)
             _threads_queues[t] = self._work_queue
 
